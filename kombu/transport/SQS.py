@@ -346,7 +346,7 @@ class Channel(virtual.Channel):
     def _schedule_queue(self, queue):
         logger.info('[_schedule_queue] Gal Cohen kombu/kombu/transport/SQS.py')
         if queue in self._active_queues:
-            if not self.qos.can_consume() and self.qos.prefetch_count == len(self.qos._dirty):
+            if not self.qos.can_consume() and self.qos.prefetch_count == len(self.qos._delivered):
                 self.qos._delivered = OrderedDict()
 
             if self.qos.can_consume():
