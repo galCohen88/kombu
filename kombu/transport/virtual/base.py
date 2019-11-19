@@ -194,6 +194,8 @@ class QoS(object):
         Used to ensure the client adhers to currently active
         prefetch limits.
         """
+        import traceback
+        traceback.print_stack()
         pcount = self.prefetch_count
         logger.info(f'delivered {self._delivered}, dirty {self._dirty} pcount {self.prefetch_count}')
         return not pcount or len(self._delivered) - len(self._dirty) < pcount
