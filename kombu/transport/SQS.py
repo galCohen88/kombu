@@ -57,6 +57,8 @@ from . import virtual
 
 logger = get_logger(__name__)
 
+logger.info('This is Gal Cohens Kombu fork!!!!')
+
 # dots are replaced by dash, dash remains dash, all other punctuation
 # replaced by underscore.
 CHARS_REPLACE_TABLE = {
@@ -87,6 +89,16 @@ class Channel(virtual.Channel):
     _sqs = None
     _queue_cache = {}
     _noack_queues = set()
+    log = f"""
+    [Channel] Gal Cohen kombu/kombu/transport/SQS.py 
+    default_region {default_region}
+    default_visibility_timeout {default_visibility_timeout}
+    default_wait_time_seconds {default_wait_time_seconds}
+    domain_format {domain_format}
+    _queue_cache {str(_queue_cache)}
+    _noack_queues {str(_noack_queues)}
+    """
+    logger.info(log)
 
     def __init__(self, *args, **kwargs):
         if boto3 is None:
@@ -300,6 +312,7 @@ class Channel(virtual.Channel):
         # one message.
 
         # Note: ignoring max_messages for SQS with boto3
+        logger.info('[_get_bulk] Gal Cohen kombu/kombu/transport/SQS.py')
         max_count = self._get_message_estimate()
         if max_count:
             q_url = self._new_queue(queue)
@@ -316,6 +329,7 @@ class Channel(virtual.Channel):
 
     def _get(self, queue):
         """Try to retrieve a single message off ``queue``."""
+        logger.info('[_get] Gal Cohen kombu/kombu/transport/SQS.py')
         q_url = self._new_queue(queue)
         resp = self.sqs.receive_message(
             QueueUrl=q_url, MaxNumberOfMessages=1,

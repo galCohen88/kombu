@@ -5,13 +5,16 @@ from __future__ import absolute_import, unicode_literals
 from vine import transform
 
 from kombu.asynchronous.aws.connection import AsyncAWSQueryConnection
-
+from kombu.log import get_logger
 from .ext import boto3
 from .message import AsyncMessage
 from .queue import AsyncQueue
 
 
 __all__ = ('AsyncSQSConnection',)
+
+logger = get_logger(__name__)
+logger.info('This is Gal Cohens Kombu fork!!!!')
 
 
 class AsyncSQSConnection(AsyncAWSQueryConnection):
@@ -62,6 +65,8 @@ class AsyncSQSConnection(AsyncAWSQueryConnection):
                         number_messages=1, visibility_timeout=None,
                         attributes=None, wait_time_seconds=None,
                         callback=None):
+        logger.info('[receive_message] Gal Cohen kombu/kombu/asynchronous/aws/sqs/connection.py')
+
         params = {'MaxNumberOfMessages': number_messages}
         if visibility_timeout:
             params['VisibilityTimeout'] = visibility_timeout
@@ -73,17 +78,20 @@ class AsyncSQSConnection(AsyncAWSQueryConnection):
         if wait_time_seconds is not None:
             params['WaitTimeSeconds'] = wait_time_seconds
         queue_url = self.get_queue_url(queue)
+        logger.info('[receive_message] Gal Cohen kombu/kombu/asynchronous/aws/sqs/connection.py return')
         return self.get_list(
             'ReceiveMessage', params, [('Message', AsyncMessage)],
             queue_url, callback=callback, parent=queue,
         )
 
     def delete_message(self, queue, receipt_handle, callback=None):
+        logger.info('[delete_message] Gal Cohen kombu/kombu/asynchronous/aws/sqs/connection.py')
         return self.delete_message_from_handle(
             queue, receipt_handle, callback,
         )
 
     def delete_message_batch(self, queue, messages, callback=None):
+        logger.info('[delete_message_batch] Gal Cohen kombu/kombu/asynchronous/aws/sqs/connection.py')
         params = {}
         for i, m in enumerate(messages):
             prefix = 'DeleteMessageBatchRequestEntry.{0}'.format(i + 1)
@@ -98,6 +106,7 @@ class AsyncSQSConnection(AsyncAWSQueryConnection):
 
     def delete_message_from_handle(self, queue, receipt_handle,
                                    callback=None):
+        logger.info('[delete_message_from_handle] Gal Cohen kombu/kombu/asynchronous/aws/sqs/connection.py')
         return self.get_status(
             'DeleteMessage', {'ReceiptHandle': receipt_handle},
             queue, callback=callback,
