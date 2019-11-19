@@ -89,22 +89,21 @@ class Channel(virtual.Channel):
     _sqs = None
     _queue_cache = {}
     _noack_queues = set()
-    log = f"""
-    [Channel] Gal Cohen kombu/kombu/transport/SQS.py 
-    default_region {default_region}
-    default_visibility_timeout {default_visibility_timeout}
-    default_wait_time_seconds {default_wait_time_seconds}
-    domain_format {domain_format}
-    _queue_cache {str(_queue_cache)}
-    _noack_queues {str(_noack_queues)}
-    """
-    logger.info(log)
 
     def __init__(self, *args, **kwargs):
         if boto3 is None:
             raise ImportError('boto3 is not installed')
         super(Channel, self).__init__(*args, **kwargs)
-
+        log = f"""
+        [Channel] Gal Cohen kombu/kombu/transport/SQS.py 
+        default_region {self.default_region}
+        default_visibility_timeout {self.default_visibility_timeout}
+        default_wait_time_seconds {self.default_wait_time_seconds}
+        domain_format {self.domain_format}
+        _queue_cache {str(self._queue_cache)}
+        _noack_queues {str(self._noack_queues)}
+        """
+        logger.info(log)
         # SQS blows up if you try to create a new queue when one already
         # exists but with a different visibility_timeout.  This prepopulates
         # the queue_cache to protect us from recreating
