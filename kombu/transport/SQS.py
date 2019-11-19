@@ -350,6 +350,7 @@ class Channel(virtual.Channel):
                     queue, callback=promise(self._loop1, (queue,)),
                 )
             else:
+                logger.info('[can_consume] Gal Cohen is false!')
                 self._loop1(queue)
 
     def _get_message_estimate(self, max_if_unlimited=SQS_MAX_MESSAGES):
