@@ -344,6 +344,7 @@ class Channel(virtual.Channel):
         self.hub.call_soon(self._schedule_queue, queue)
 
     def _schedule_queue(self, queue):
+        logger.info('[_schedule_queue] Gal Cohen kombu/kombu/transport/SQS.py')
         if queue in self._active_queues:
             if self.qos.can_consume():
                 self._get_bulk_async(
@@ -362,6 +363,7 @@ class Channel(virtual.Channel):
     def _get_bulk_async(self, queue,
                         max_if_unlimited=SQS_MAX_MESSAGES, callback=None):
         maxcount = self._get_message_estimate()
+        logger.info('[_get_bulk_async] Gal Cohen kombu/kombu/transport/SQS.py')
         if maxcount:
             return self._get_async(queue, maxcount, callback=callback)
         # Not allowed to consume, make sure to notify callback..
@@ -372,6 +374,7 @@ class Channel(virtual.Channel):
     def _get_async(self, queue, count=1, callback=None):
         q = self._new_queue(queue)
         qname = self.canonical_queue_name(queue)
+        logger.info('[_get_async] Gal Cohen kombu/kombu/transport/SQS.py')
         return self._get_from_sqs(
             qname, count=count, connection=self.asynsqs,
             callback=transform(self._on_messages_ready, callback, q, queue),
@@ -391,6 +394,7 @@ class Channel(virtual.Channel):
         Uses long polling and returns :class:`~vine.promises.promise`.
         """
         connection = connection if connection is not None else queue.connection
+        logger.info('[_get_from_sqs] Gal Cohen kombu/kombu/transport/SQS.py')
         return connection.receive_message(
             queue, number_messages=count,
             wait_time_seconds=self.wait_time_seconds,
