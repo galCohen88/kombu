@@ -348,7 +348,7 @@ class Channel(virtual.Channel):
         logger.info('[_schedule_queue] Gal Cohen kombu/kombu/transport/SQS.py')
         if queue in self._active_queues:
             logger.info(inspect.stack())
-            if self.qos.can_consume():
+            if True:
                 logger.info('[can_consume] Gal Cohen is true!')
                 self._get_bulk_async(
                     queue, callback=promise(self._loop1, (queue,)),
