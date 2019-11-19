@@ -195,6 +195,7 @@ class QoS(object):
         prefetch limits.
         """
         pcount = self.prefetch_count
+        logger.info(f'delivered {self._delivered}, dirty {self._dirty} pcount {self.prefetch_count}')
         return not pcount or len(self._delivered) - len(self._dirty) < pcount
 
     def can_consume_max_estimate(self):
