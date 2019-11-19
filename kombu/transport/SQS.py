@@ -346,6 +346,7 @@ class Channel(virtual.Channel):
         logger.info('[_schedule_queue] Gal Cohen kombu/kombu/transport/SQS.py')
         if queue in self._active_queues:
             if self.qos.can_consume():
+                logger.info('[can_consume] Gal Cohen is true!')
                 self._get_bulk_async(
                     queue, callback=promise(self._loop1, (queue,)),
                 )
@@ -365,9 +366,11 @@ class Channel(virtual.Channel):
         maxcount = self._get_message_estimate()
         logger.info('[_get_bulk_async] Gal Cohen kombu/kombu/transport/SQS.py')
         if maxcount:
+            logger.info('[_get_bulk_async maxcount] Gal Cohen kombu/kombu/transport/SQS.py')
             return self._get_async(queue, maxcount, callback=callback)
         # Not allowed to consume, make sure to notify callback..
         callback = ensure_promise(callback)
+        logger.info('[_get_bulk_async maxcount] callback Gal Cohen kombu/kombu/transport/SQS.py')
         callback([])
         return callback
 
