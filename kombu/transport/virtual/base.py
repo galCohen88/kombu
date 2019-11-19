@@ -8,7 +8,7 @@ import base64
 import socket
 import sys
 import warnings
-
+import traceback
 from array import array
 from collections import OrderedDict, defaultdict, namedtuple
 from itertools import count
@@ -194,7 +194,7 @@ class QoS(object):
         Used to ensure the client adhers to currently active
         prefetch limits.
         """
-        import traceback
+        logger.info('traceback')
         traceback.print_stack()
         pcount = self.prefetch_count
         logger.info(f'delivered {self._delivered}, dirty {self._dirty} pcount {self.prefetch_count}')
