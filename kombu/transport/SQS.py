@@ -34,6 +34,7 @@ SQS Features supported by this transport:
 """  # noqa: E501
 
 from __future__ import absolute_import, unicode_literals
+import inspect
 
 import base64
 import socket
@@ -346,7 +347,7 @@ class Channel(virtual.Channel):
     def _schedule_queue(self, queue):
         logger.info('[_schedule_queue] Gal Cohen kombu/kombu/transport/SQS.py')
         if queue in self._active_queues:
-            import pdb; pdb.set_trace()
+            logger.info(inspect.stack())
             if self.qos.can_consume():
                 logger.info('[can_consume] Gal Cohen is true!')
                 self._get_bulk_async(
