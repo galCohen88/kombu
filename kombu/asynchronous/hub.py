@@ -288,13 +288,10 @@ class Hub(object):
         propagate = self.propagate_errors
 
         while 1:
-            todo = self._ready
-            self._ready = set()
-
-            for tick_callback in on_tick:
-                tick_callback()
-
-            for item in todo:
+            todo = self._ready.copy()
+            self._ready.clear()
+            while todo:
+                item = todo.pop()
                 if item:
                     item()
 
