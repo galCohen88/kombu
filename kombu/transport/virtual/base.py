@@ -195,7 +195,7 @@ class QoS(object):
         Used to ensure the client adhers to currently active
         prefetch limits.
         """
-        rdb.set_trace()
+        # rdb.set_trace()
         pcount = self.prefetch_count
         logger.info(f'delivered {self._delivered}, dirty {self._dirty} pcount {self.prefetch_count}')
         return not pcount or len(self._delivered) - len(self._dirty) < pcount
@@ -216,7 +216,7 @@ class QoS(object):
             return max(pcount - (len(self._delivered) - len(self._dirty)), 0)
 
     def append(self, message, delivery_tag):
-        rdb.set_trace()
+        # rdb.set_trace()
         """Append message to transactional state."""
         if self._dirty:
             self._flush()
@@ -238,7 +238,7 @@ class QoS(object):
 
     def ack(self, delivery_tag):
         """Acknowledge message and remove from transactional state."""
-        rdb.set_trace()
+        # rdb.set_trace()
         self._quick_ack(delivery_tag)
 
     def reject(self, delivery_tag, requeue=False):
