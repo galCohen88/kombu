@@ -90,6 +90,7 @@ class Message(object):
             except Exception:
                 self.errors.append(sys.exc_info())
         self.body = body
+        print(f'this is the message!!! {str(self)}')
 
     def _reraise_error(self, callback=None):
         try:
