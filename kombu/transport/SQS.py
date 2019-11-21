@@ -42,6 +42,7 @@ import string
 import uuid
 from collections import OrderedDict
 
+from celery.contrib import rdb
 from vine import transform, ensure_promise, promise
 
 from kombu.asynchronous import get_event_loop
@@ -347,6 +348,7 @@ class Channel(virtual.Channel):
     def _schedule_queue(self, queue):
         logger.info('[_schedule_queue] Gal Cohen kombu/kombu/transport/SQS.py')
         if queue in self._active_queues:
+            rdb.set_trace()
             logger.info(f'[can_consume] Gal Cohen log {str(dir(self))}')
             if self.qos.can_consume():
                 logger.info('[can_consume] Gal Cohen is true!')
