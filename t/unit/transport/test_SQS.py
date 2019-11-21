@@ -487,7 +487,7 @@ class test_Channel:
             ReceiptHandle=message['sqs_message']['ReceiptHandle']
         )
 
-    def test_fail_fetching_more_work_when_task_failed(self):
+    def test_fail_fetching_more_work_after_task_failed(self):
         message = {
             'sqs_message': {
                 'ReceiptHandle': '1'
