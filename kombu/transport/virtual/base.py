@@ -16,6 +16,7 @@ from multiprocessing.util import Finalize
 from time import sleep
 
 from amqp.protocol import queue_declare_ok_t
+from celery.contrib import rdb
 
 from kombu.exceptions import ResourceError, ChannelError
 from kombu.five import Empty, items, monotonic
@@ -194,6 +195,7 @@ class QoS(object):
         Used to ensure the client adhers to currently active
         prefetch limits.
         """
+        rdb.set_trace()
         pcount = self.prefetch_count
         logger.info(f'delivered {self._delivered}, dirty {self._dirty} pcount {self.prefetch_count}')
         return not pcount or len(self._delivered) - len(self._dirty) < pcount
