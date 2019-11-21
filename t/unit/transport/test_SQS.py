@@ -486,3 +486,25 @@ class test_Channel:
             QueueUrl=message['sqs_queue'],
             ReceiptHandle=message['sqs_message']['ReceiptHandle']
         )
+
+    def test_fail_fetching_more_work_when_task_failed(self):
+        message = {
+            'sqs_message': {
+                'ReceiptHandle': '1'
+            },
+            'sqs_queue': 'testing_queue'
+        }
+        self.channel.qos.prefetch_count = 1
+        self.channel.connection._deliver = Mock(name='_deliver')
+        mock_messages = Mock()
+        mock_messages.delivery_info = message
+        self.channel.qos.append(mock_messages, 1)
+        self.channel.sqs.delete_message = Mock()
+
+        # at this point the task failed and it will not be acked since
+        # acks_on_failure_or_timeout=False
+        assert self.channel.qos.can_consume() == False
+
+        # it will be possible only if acking the message in full
+        self.channel.basic_ack(1)
+        assert self.channel.qos.can_consume() == True
