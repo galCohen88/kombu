@@ -216,6 +216,7 @@ class QoS(object):
             return max(pcount - (len(self._delivered) - len(self._dirty)), 0)
 
     def append(self, message, delivery_tag):
+        rdb.set_trace()
         """Append message to transactional state."""
         if self._dirty:
             self._flush()
@@ -237,6 +238,7 @@ class QoS(object):
 
     def ack(self, delivery_tag):
         """Acknowledge message and remove from transactional state."""
+        rdb.set_trace()
         self._quick_ack(delivery_tag)
 
     def reject(self, delivery_tag, requeue=False):
