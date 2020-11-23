@@ -151,8 +151,11 @@ class QoS(virtual.QoS):
         self._quick_ack(delivery_tag)
 
     def change_message_visibility_timeout(self, delivery_tag):
-        queue_name = self.channel.canonical_queue_name
+        queue_name = self.channel._queue_cache['sqs-us-east-1-amazonaws-com_160043208412_try2']
         logger.info("queue name" + queue_name)
+        # self.channel.asynsqs(queue=queue_name)
+        canonical_queue_name = self.channel.canonical_queue_name(queue_name)
+        logger.info("canon queue name" + canonical_queue_name)
         c = self.channel.sqs(queue_name)
         c.change_message_visibility(
             QueueUrl=queue_name,
