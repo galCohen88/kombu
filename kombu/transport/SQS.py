@@ -201,6 +201,7 @@ class Channel(virtual.Channel):
         Raises:
             Queue.Empty: if no messages available.
         """
+        logger.info("GAL drain_events")
         # If we're not allowed to consume or have no consumers, raise Empty
         if not self._consumers or not self.qos.can_consume():
             raise Empty()
@@ -217,12 +218,14 @@ class Channel(virtual.Channel):
                 multiple messages to be returned at once from SQS (
                 based on the prefetch limit).
         """
+        logger.info("GAL _reset_cycle")
         self._cycle = scheduling.FairCycle(
             self._get_bulk, self._active_queues, Empty,
         )
 
     def entity_name(self, name, table=CHARS_REPLACE_TABLE):
         """Format AMQP queue name into a legal SQS queue name."""
+        logger.info("GAL entity_name")
         if name.endswith('.fifo'):
             partial = name[:-len('.fifo')]
             partial = str(safe_str(partial)).translate(table)
@@ -231,6 +234,7 @@ class Channel(virtual.Channel):
             return str(safe_str(name)).translate(table)
 
     def canonical_queue_name(self, queue_name):
+        logger.info("GAL canonical_queue_name")
         return self.entity_name(self.queue_name_prefix + queue_name)
 
     def _new_queue(self, queue, **kwargs):
@@ -288,6 +292,7 @@ class Channel(virtual.Channel):
         self._queue_cache.pop(queue, None)
 
     def _put(self, queue, message, **kwargs):
+        logger.info("GAL _put")
         """Put message onto queue."""
         q_url = self._new_queue(queue)
         kwargs = {'QueueUrl': q_url,
@@ -306,6 +311,7 @@ class Channel(virtual.Channel):
 
         c = self.sqs(queue=self.canonical_queue_name(queue))
         if message.get('redelivered'):
+            logger.info("GAL _put redelivered")
             c.change_message_visibility(
                 QueueUrl=q_url,
                 ReceiptHandle=message['properties']['delivery_tag'],
@@ -416,9 +422,11 @@ class Channel(virtual.Channel):
         raise Empty()
 
     def _loop1(self, queue, _=None):
+        logger.info("GAL _loop1")
         self.hub.call_soon(self._schedule_queue, queue)
 
     def _schedule_queue(self, queue):
+        logger.info("GAL _schedule_queue")
         if queue in self._active_queues:
             if self.qos.can_consume():
                 self._get_bulk_async(
@@ -534,6 +542,7 @@ class Channel(virtual.Channel):
         return size
 
     def close(self):
+        logger.info("GAL close")
         super().close()
         # if self._asynsqs:
         #     try:
