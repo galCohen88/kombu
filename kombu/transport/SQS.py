@@ -179,6 +179,7 @@ class Channel(virtual.Channel):
             self._queue_cache[queue_name] = url
 
     def basic_consume(self, queue, no_ack, *args, **kwargs):
+        print("basic_consume")
         if no_ack:
             self._noack_queues.add(queue)
         if self.hub:
@@ -188,6 +189,7 @@ class Channel(virtual.Channel):
         )
 
     def basic_cancel(self, consumer_tag):
+        print("basic_cancel")
         if consumer_tag in self._consumers:
             queue = self._tag_to_queue[consumer_tag]
             self._noack_queues.discard(queue)
@@ -481,12 +483,14 @@ class Channel(virtual.Channel):
 
     def _restore(self, message,
                  unwanted_delivery_info=('sqs_message', 'sqs_queue')):
+        print("_restore")
         for unwanted_key in unwanted_delivery_info:
             # Remove objects that aren't JSON serializable (Issue #1108).
             message.delivery_info.pop(unwanted_key, None)
         return super()._restore(message)
 
     def basic_ack(self, delivery_tag, multiple=False):
+        print("basic_ack")
         try:
             message = self.qos.get(delivery_tag).delivery_info
             sqs_message = message['sqs_message']
