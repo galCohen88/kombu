@@ -147,7 +147,18 @@ class QoS(virtual.QoS):
         logger.info(dir(self.channel))
         if requeue:
             self.channel._restore_at_beginning(self._delivered[delivery_tag])
+        self.change_message_visibility_timeout(delivery_tag)
         self._quick_ack(delivery_tag)
+
+    def change_message_visibility_timeout(self, delivery_tag):
+        queue_name = self.channel.canonical_queue_name
+        logger.info("queue name" + queue_name)
+        c = self.channel.sqs(queue_name)
+        c.change_message_visibility(
+            QueueUrl=queue_name,
+            ReceiptHandle=delivery_tag,
+            VisibilityTimeout=20000
+        )
 
 
 class Channel(virtual.Channel):
