@@ -142,18 +142,14 @@ class UndefinedQueueException(Exception):
 
 class QoS(virtual.QoS):
     def reject(self, delivery_tag, requeue=False):
-        """Remove from transactional state and requeue message."""
-        logger.info("new QoS")
-        logger.info(dir(self.channel))
-        if requeue:
-            self.channel._restore_at_beginning(self._delivered[delivery_tag])
+        super().reject(delivery_tag, requeue=requeue)
         self.change_message_visibility_timeout(delivery_tag)
-        self._quick_ack(delivery_tag)
 
     def change_message_visibility_timeout(self, delivery_tag):
         queue_name = 'sqs-us-east-1-amazonaws-com_160043208412_try2'
         queue_url = self.channel._queue_cache[queue_name]
         logger.info("queue url " + str(queue_url))
+        logger.info("deliverd dir " + str(dir(self._delivered.get(delivery_tag))))
         c = self.channel.sqs(queue_name)
         c.change_message_visibility(
             QueueUrl=queue_url,
