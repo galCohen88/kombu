@@ -416,6 +416,7 @@ class Channel(virtual.Channel):
         Returns:
             List[Message]
         """
+        logger.info("GALGAL _get_bulk")
         # drain_events calls `can_consume` first, consuming
         # a token, so we know that we are allowed to consume at least
         # one message.
@@ -437,6 +438,7 @@ class Channel(virtual.Channel):
 
     def _get(self, queue):
         """Try to retrieve a single message off ``queue``."""
+        logger.info("GALGAL _get")
         q_url = self._new_queue(queue)
         resp = self.sqs(queue=queue).receive_message(
             QueueUrl=q_url, MaxNumberOfMessages=1,
@@ -499,6 +501,7 @@ class Channel(virtual.Channel):
 
         Uses long polling and returns :class:`~vine.promises.promise`.
         """
+        logger.info("GALGAL _get_from_sqs")
         connection = connection if connection is not None else queue.connection
         if self.predefined_queues:
             if queue not in self._queue_cache:
