@@ -140,6 +140,16 @@ class UndefinedQueueException(Exception):
     """Predefined queues are being used and an undefined queue was used."""
 
 
+class QoS(virtual.QoS):
+    def reject(self, delivery_tag, requeue=False):
+        """Remove from transactional state and requeue message."""
+        logger.info("new QoS")
+        logger.info(dir(self.sqs))
+        if requeue:
+            self.channel._restore_at_beginning(self._delivered[delivery_tag])
+        self._quick_ack(delivery_tag)
+
+
 class Channel(virtual.Channel):
     """SQS Channel."""
 
@@ -153,6 +163,7 @@ class Channel(virtual.Channel):
     _predefined_queue_clients = {}  # A client for each predefined queue
     _queue_cache = {}
     _noack_queues = set()
+    QoS = QoS
 
     def __init__(self, *args, **kwargs):
         if boto3 is None:
