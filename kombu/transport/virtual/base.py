@@ -194,7 +194,7 @@ class QoS:
         prefetch limits.
         """
         pcount = self.prefetch_count
-        logger.info(f"dirty: {str(self._dirty)} delivered: {self._delivered}")
+        logger.info(f"dirty GAL: {str(self._dirty)} delivered: {self._delivered}")
         return not pcount or len(self._delivered) - len(self._dirty) < pcount
 
     def can_consume_max_estimate(self):
@@ -234,6 +234,7 @@ class QoS:
 
     def ack(self, delivery_tag):
         """Acknowledge message and remove from transactional state."""
+        logger.info("GAL virtual base ack")
         self._quick_ack(delivery_tag)
 
     def reject(self, delivery_tag, requeue=False):
@@ -246,6 +247,7 @@ class QoS:
 
     def restore_unacked(self):
         """Restore all unacknowledged messages."""
+        logger.info("GAL virtual base restore_unacked")
         self._flush()
         delivered = self._delivered
         errors = []
