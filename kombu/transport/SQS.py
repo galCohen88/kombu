@@ -144,7 +144,7 @@ class QoS(virtual.QoS):
     def reject(self, delivery_tag, requeue=False):
         """Remove from transactional state and requeue message."""
         logger.info("new QoS")
-        logger.info(dir(self.sqs))
+        logger.info(dir(self))
         if requeue:
             self.channel._restore_at_beginning(self._delivered[delivery_tag])
         self._quick_ack(delivery_tag)
