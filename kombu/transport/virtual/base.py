@@ -667,6 +667,7 @@ class Channel(AbstractChannel, base.StdChannel):
         self.qos.ack(delivery_tag)
 
     def basic_recover(self, requeue=False):
+        logger.info("GAL virtual base basic_recover")
         """Recover unacked messages."""
         if requeue:
             return self.qos.restore_unacked()

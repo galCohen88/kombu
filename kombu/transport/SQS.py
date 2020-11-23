@@ -345,6 +345,8 @@ class Channel(virtual.Channel):
             c.send_message(**kwargs)
 
     def _message_to_python(self, message, queue_name, queue):
+        print("_message_to_python")
+        print(message)
         try:
             body = base64.b64decode(message['Body'].encode())
         except TypeError:
