@@ -59,6 +59,8 @@ queue_binding_t = namedtuple('queue_binding_t', (
     'exchange', 'routing_key', 'arguments',
 ))
 
+from kombu.log import get_logger
+logger = get_logger(__name__)
 
 class Base64:
     """Base64 codec."""
@@ -672,6 +674,7 @@ class Channel(AbstractChannel, base.StdChannel):
 
     def basic_reject(self, delivery_tag, requeue=False):
         """Reject message."""
+        logger.info("basic_reject to be overriden GAL")
         self.qos.reject(delivery_tag, requeue=requeue)
 
     def basic_qos(self, prefetch_size=0, prefetch_count=0,
