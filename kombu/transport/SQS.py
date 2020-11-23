@@ -149,7 +149,9 @@ class QoS(virtual.QoS):
         queue_name = 'sqs-us-east-1-amazonaws-com_160043208412_try2'
         queue_url = self.channel._queue_cache[queue_name]
         logger.info("queue url " + str(queue_url))
-        logger.info("deliverd dir " + str(dir(self._delivered.get(delivery_tag))))
+        message = self._delivered.get(delivery_tag)
+        message_headers = message.get('headers')
+        logger.info("message headers " + str(message_headers))
         c = self.channel.sqs(queue_name)
         c.change_message_visibility(
             QueueUrl=queue_url,
