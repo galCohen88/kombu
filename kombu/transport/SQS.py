@@ -512,11 +512,15 @@ class Channel(virtual.Channel):
             queue_url = self._queue_cache[queue]
         else:
             queue_url = connection.get_queue_url(queue)
-        return connection.receive_message(
+        m = connection.receive_message(
             queue, queue_url, number_messages=count,
             wait_time_seconds=self.wait_time_seconds,
             callback=callback,
         )
+        print('galgalgal')
+        print(m)
+        return m
+
 
     def _restore(self, message,
                  unwanted_delivery_info=('sqs_message', 'sqs_queue')):
