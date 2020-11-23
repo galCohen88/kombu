@@ -238,6 +238,7 @@ class QoS:
 
     def reject(self, delivery_tag, requeue=False):
         """Remove from transactional state and requeue message."""
+        print("GAL virtual base reject")
         if requeue:
             self.channel._restore_at_beginning(self._delivered[delivery_tag])
         self._quick_ack(delivery_tag)
