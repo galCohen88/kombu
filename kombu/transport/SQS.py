@@ -150,7 +150,7 @@ class QoS(virtual.QoS):
         queue_url = self.channel._queue_cache[queue_name]
         logger.info("queue url " + str(queue_url))
         message = self._delivered.get(delivery_tag)
-        message_headers = message.get('headers')
+        message_headers = message.headers
         logger.info("message headers " + str(message_headers))
         c = self.channel.sqs(queue_name)
         c.change_message_visibility(
