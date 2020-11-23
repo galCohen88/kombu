@@ -139,6 +139,7 @@ def maybe_int(x):
 class UndefinedQueueException(Exception):
     """Predefined queues are being used and an undefined queue was used."""
 
+exponential_retry_tasks = []
 
 class QoS(virtual.QoS):
     def reject(self, delivery_tag, requeue=False):
@@ -151,13 +152,15 @@ class QoS(virtual.QoS):
         logger.info("queue url " + str(queue_url))
         message = self._delivered.get(delivery_tag)
         message_headers = message.headers
-        logger.info("message headers " + str(message_headers))
-        c = self.channel.sqs(queue_name)
-        c.change_message_visibility(
-            QueueUrl=queue_url,
-            ReceiptHandle=delivery_tag,
-            VisibilityTimeout=20000
-        )
+        task_name = message_headers.get('task')
+        number_of_retries = message_headers.get('retries')
+        if task_name in exponential_retry_tasks:
+            c = self.channel.sqs(queue_name)
+            c.change_message_visibility(
+                QueueUrl=queue_url,
+                ReceiptHandle=delivery_tag,
+                VisibilityTimeout=30**number_of_retries
+            )
 
 
 class Channel(virtual.Channel):
