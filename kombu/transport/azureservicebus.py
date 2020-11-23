@@ -1,10 +1,4 @@
-"""Azure Service Bus Message Queue transport.
-
-The transport can be enabled by setting the CELERY_BROKER_URL to:
-
-```
-azureservicebus://{SAS policy name}:{SAS key}@{Service Bus Namespace}
-```
+"""Azure Service Bus Message Queue transport module for kombu.
 
 Note that the Shared Access Policy used to connect to Azure Service Bus
 requires Manage, Send and Listen claims since the broker will create new
@@ -16,12 +10,36 @@ have to be regenerated before it can be used in the connection URL.
 More information about Azure Service Bus:
 https://azure.microsoft.com/en-us/services/service-bus/
 
+Features
+========
+* Type: Virtual
+* Supports Direct: *Unreviewed*
+* Supports Topic: *Unreviewed*
+* Supports Fanout: *Unreviewed*
+* Supports Priority: *Unreviewed*
+* Supports TTL: *Unreviewed*
+
+Connection String
+=================
+
+Connection string has the following format:
+
+.. code-block::
+
+    azureservicebus://SAS_POLICY_NAME:SAS_KEY@SERVICE_BUSNAMESPACE
+
+Transport Options
+=================
+
+* ``visibility_timeout``
+* ``queue_name_prefix``
+* ``wait_time_seconds``
+* ``peek_lock``
 """
-from __future__ import absolute_import, unicode_literals
 
 import string
+from queue import Empty
 
-from kombu.five import Empty, text_t
 from kombu.utils.encoding import bytes_to_str, safe_str
 from kombu.utils.json import loads, dumps
 from kombu.utils.objects import cached_property
@@ -50,6 +68,7 @@ class Channel(virtual.Channel):
 
     default_visibility_timeout = 1800  # 30 minutes.
     default_wait_time_seconds = 5  # in seconds
+    default_peek_lock = False
     domain_format = 'kombu%(vhost)s'
     _queue_service = None
     _queue_cache = {}
@@ -59,14 +78,14 @@ class Channel(virtual.Channel):
             raise ImportError('Azure Service Bus transport requires the '
                               'azure-servicebus library')
 
-        super(Channel, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         for queue in self.queue_service.list_queues():
             self._queue_cache[queue] = queue
 
     def entity_name(self, name, table=CHARS_REPLACE_TABLE):
         """Format AMQP queue name into a valid ServiceBus queue name."""
-        return text_t(safe_str(name)).translate(table)
+        return str(safe_str(name)).translate(table)
 
     def _new_queue(self, queue, **kwargs):
         """Ensure a queue exists in ServiceBus."""
@@ -83,7 +102,7 @@ class Channel(virtual.Channel):
         queue_name = self.entity_name(queue)
         self._queue_cache.pop(queue_name, None)
         self.queue_service.delete_queue(queue_name)
-        super(Channel, self)._delete(queue_name)
+        super()._delete(queue_name)
 
     def _put(self, queue, message, **kwargs):
         """Put message onto queue."""
@@ -95,7 +114,7 @@ class Channel(virtual.Channel):
         message = self.queue_service.receive_queue_message(
             self.entity_name(queue),
             timeout=timeout or self.wait_time_seconds,
-            peek_lock=False
+            peek_lock=self.peek_lock
         )
 
         if message.body is None:
@@ -153,6 +172,11 @@ class Channel(virtual.Channel):
     def wait_time_seconds(self):
         return self.transport_options.get('wait_time_seconds',
                                           self.default_wait_time_seconds)
+
+    @cached_property
+    def peek_lock(self):
+        return self.transport_options.get('peek_lock',
+                                          self.default_peek_lock)
 
 
 class Transport(virtual.Transport):

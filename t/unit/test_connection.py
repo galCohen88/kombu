@@ -1,17 +1,14 @@
-from __future__ import absolute_import, unicode_literals
-
 import pickle
 import pytest
 import socket
 
 from copy import copy, deepcopy
 
-from case import Mock, patch, skip
+from unittest.mock import Mock, patch
 
 from kombu import Connection, Consumer, Producer, parse_url
 from kombu.connection import Resource
 from kombu.exceptions import OperationalError
-from kombu.five import items, range
 from kombu.utils.functional import lazy
 
 from t.mocks import Transport
@@ -46,13 +43,13 @@ class test_connection_utils:
         assert conn.as_uri() == self.nopass
         assert conn.as_uri(include_password=True) == self.url
 
-    @skip.unless_module('redis')
     def test_as_uri_when_prefix(self):
+        pytest.importorskip('redis')
         conn = Connection('redis+socket:///var/spool/x/y/z/redis.sock')
         assert conn.as_uri() == 'redis+socket:///var/spool/x/y/z/redis.sock'
 
-    @skip.unless_module('pymongo')
     def test_as_uri_when_mongodb(self):
+        pytest.importorskip('pymongo')
         x = Connection('mongodb://localhost')
         assert x.as_uri()
 
@@ -62,7 +59,7 @@ class test_connection_utils:
 
     def assert_info(self, conn, **fields):
         info = conn.info()
-        for field, expected in items(fields):
+        for field, expected in fields.items():
             assert info[field] == expected
 
     @pytest.mark.parametrize('url,expected', [
@@ -104,7 +101,7 @@ class test_connection_utils:
         # see Appendix A of http://www.rabbitmq.com/uri-spec.html
         self.assert_info(Connection(url), **expected)
 
-    @skip.todo('urllib cannot parse ipv6 urls')
+    @pytest.mark.skip('TODO: urllib cannot parse ipv6 urls')
     def test_url_IPV6(self):
         self.assert_info(
             Connection('amqp://[::1]'),
@@ -118,6 +115,7 @@ class test_connection_utils:
         assert clone.alt == ['amqp://host']
 
     def test_parse_generated_as_uri_pg(self):
+        pytest.importorskip('sqlalchemy')
         conn = Connection(self.pg_url)
         assert conn.as_uri() == self.pg_nopass
         assert conn.as_uri(include_password=True) == self.pg_url
@@ -130,7 +128,9 @@ class test_Connection:
 
     def test_establish_connection(self):
         conn = self.conn
+        assert not conn.connected
         conn.connect()
+        assert conn.connected
         assert conn.connection.connected
         assert conn.host == 'localhost:5672'
         channel = conn.channel()
@@ -140,6 +140,40 @@ class test_Connection:
         conn.close()
         assert not _connection.connected
         assert isinstance(conn.transport, Transport)
+
+    def test_reuse_connection(self):
+        conn = self.conn
+        assert conn.connect() is conn.connection is conn.connect()
+
+    def test_connect_no_transport_options(self):
+        conn = self.conn
+        conn._ensure_connection = Mock()
+
+        conn.connect()
+        # ensure_connection must be called to return immidiately
+        # and fail with transport exception
+        conn._ensure_connection.assert_called_with(
+            max_retries=1, reraise_as_library_errors=False
+        )
+
+    def test_connect_transport_options(self):
+        conn = self.conn
+        conn.transport_options = {
+            'max_retries': 1,
+            'interval_start': 2,
+            'interval_step': 3,
+            'interval_max': 4,
+            'ignore_this': True
+        }
+        conn._ensure_connection = Mock()
+
+        conn.connect()
+        # connect() is ignoring transport options
+        # ensure_connection must be called to return immidiately
+        # and fail with transport exception
+        conn._ensure_connection.assert_called_with(
+            max_retries=1, reraise_as_library_errors=False
+        )
 
     def test_multiple_urls(self):
         conn1 = Connection('amqp://foo;amqp://bar')
@@ -382,6 +416,18 @@ class test_Connection:
         conn._close()
         conn._default_channel.close.assert_called_with()
 
+    def test_auto_reconnect_default_channel(self):
+        # tests GH issue: #1208
+        # Tests that default_channel automatically reconnects when connection
+        # closed
+        c = Connection('memory://')
+        c._closed = True
+        with patch.object(
+            c, '_connection_factory', side_effect=c._connection_factory
+        ) as cf_mock:
+            c.default_channel
+            cf_mock.assert_called_once_with()
+
     def test_close_when_default_channel_close_raises(self):
 
         class Conn(Connection):
@@ -404,32 +450,6 @@ class test_Connection:
 
         defchan.close.assert_called_with()
         assert conn._default_channel is None
-
-    def test_default_channel_no_transport_options(self):
-        conn = self.conn
-        conn.ensure_connection = Mock()
-
-        assert conn.default_channel
-        conn.ensure_connection.assert_called_with()
-
-    def test_default_channel_transport_options(self):
-        conn = self.conn
-        conn.transport_options = options = {
-            'max_retries': 1,
-            'interval_start': 2,
-            'interval_step': 3,
-            'interval_max': 4,
-            'ignore_this': True
-        }
-        conn.ensure_connection = Mock()
-
-        assert conn.default_channel
-        conn.ensure_connection.assert_called_with(**{
-            k: v for k, v in options.items()
-            if k in ['max_retries',
-                     'interval_start',
-                     'interval_step',
-                     'interval_max']})
 
     def test_ensure_connection(self):
         assert self.conn.ensure_connection()
@@ -494,6 +514,37 @@ class test_Connection:
         chan = conn.channel()
         q2 = conn.SimpleBuffer('foo', channel=chan)
         assert q2.channel is chan
+
+    def test_SimpleQueue_with_parameters(self):
+        conn = self.conn
+        q = conn.SimpleQueue(
+            'foo', True, {'durable': True}, {'x-queue-mode': 'lazy'},
+            {'durable': True, 'type': 'fanout', 'delivery_mode': 'persistent'})
+
+        assert q.queue.exchange.type == 'fanout'
+        assert q.queue.exchange.durable
+        assert not q.queue.exchange.auto_delete
+        delivery_mode_code = q.queue.exchange.PERSISTENT_DELIVERY_MODE
+        assert q.queue.exchange.delivery_mode == delivery_mode_code
+
+        assert q.queue.queue_arguments['x-queue-mode'] == 'lazy'
+
+        assert q.queue.durable
+        assert not q.queue.auto_delete
+
+    def test_SimpleBuffer_with_parameters(self):
+        conn = self.conn
+        q = conn.SimpleBuffer(
+            'foo', True, {'durable': True}, {'x-queue-mode': 'lazy'},
+            {'durable': True, 'type': 'fanout', 'delivery_mode': 'persistent'})
+        assert q.queue.exchange.type == 'fanout'
+        assert q.queue.exchange.durable
+        assert q.queue.exchange.auto_delete
+        delivery_mode_code = q.queue.exchange.PERSISTENT_DELIVERY_MODE
+        assert q.queue.exchange.delivery_mode == delivery_mode_code
+        assert q.queue.queue_arguments['x-queue-mode'] == 'lazy'
+        assert q.queue.durable
+        assert q.queue.auto_delete
 
     def test_Producer(self):
         conn = self.conn

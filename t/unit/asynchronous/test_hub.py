@@ -1,9 +1,7 @@
-from __future__ import absolute_import, unicode_literals
-
 import errno
 import pytest
 
-from case import Mock, call, patch
+from unittest.mock import Mock, call, patch
 from vine import promise
 
 from kombu.asynchronous import hub as _hub
@@ -16,7 +14,7 @@ from kombu.asynchronous.hub import (
 from kombu.asynchronous.semaphore import DummyLock, LaxBoundedSemaphore
 
 
-class File(object):
+class File:
 
     def __init__(self, fd):
         self.fd = fd
@@ -236,9 +234,12 @@ class test_Hub:
 
         poller = self.hub.poller
         self.hub.stop()
-        self.hub._ready = set()
+        mock_callback = Mock()
+        self.hub._ready = {mock_callback}
         self.hub.close()
         poller.close.assert_called_with()
+        mock_callback.assert_called_once_with()
+        assert self.hub._ready == set()
 
     def test_poller_regeneration_on_access(self):
         self.hub = Hub()

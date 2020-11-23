@@ -1,5 +1,4 @@
 """Python Compatibility Utilities."""
-from __future__ import absolute_import, unicode_literals
 
 import numbers
 import sys
@@ -7,9 +6,14 @@ import sys
 from functools import wraps
 
 from contextlib import contextmanager
-import importlib_metadata
 
-from kombu.five import reraise
+try:
+    from importlib import metadata as importlib_metadata
+except ImportError:
+    # TODO: Remove this when we drop support for Python 3.7
+    import importlib_metadata
+
+from kombu.exceptions import reraise
 
 try:
     from io import UnsupportedOperation
