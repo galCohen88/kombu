@@ -372,7 +372,7 @@ class Channel(virtual.Channel):
                 })
             # set delivery tag to SQS receipt handle
             delivery_info.update({
-                'sqs_message': message, 'sqs_queue': queue, 'retries': message['ApproximateReceiveCount']
+                'sqs_message': message, 'sqs_queue': queue, 'retries': message['Attributes']['ApproximateReceiveCount']
             })
             properties['delivery_tag'] = message['ReceiptHandle']
         return payload
@@ -492,8 +492,6 @@ class Channel(virtual.Channel):
         if 'Messages' in messages and messages['Messages']:
             callbacks = self.connection._callbacks
             for msg in messages['Messages']:
-                print('_on_messages_ready')
-                print(msg)
                 msg_parsed = self._message_to_python(msg, qname, queue)
                 callbacks[qname](msg_parsed)
 
