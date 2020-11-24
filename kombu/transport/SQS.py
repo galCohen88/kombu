@@ -362,10 +362,11 @@ class Channel(virtual.Channel):
             try:
                 properties = payload['properties']
                 delivery_info = payload['properties']['delivery_info']
+                payload['properties']['retries'] = message['ApproximateReceiveCount']
             except KeyError:
                 # json message not sent by kombu?
                 delivery_info = {}
-                properties = {'delivery_info': delivery_info, 'retries': message['ApproximateReceiveCount']}
+                properties = {'delivery_info': delivery_info}
                 payload.update({
                     'body': bytes_to_str(body),
                     'properties': properties,
