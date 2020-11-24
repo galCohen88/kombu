@@ -362,7 +362,6 @@ class Channel(virtual.Channel):
             try:
                 properties = payload['properties']
                 delivery_info = payload['properties']['delivery_info']
-                payload['properties']['retries'] = message['ApproximateReceiveCount']
             except KeyError:
                 # json message not sent by kombu?
                 delivery_info = {}
@@ -373,7 +372,7 @@ class Channel(virtual.Channel):
                 })
             # set delivery tag to SQS receipt handle
             delivery_info.update({
-                'sqs_message': message, 'sqs_queue': queue,
+                'sqs_message': message, 'sqs_queue': queue, 'retries': message['ApproximateReceiveCount']
             })
             properties['delivery_tag'] = message['ReceiptHandle']
         return payload
