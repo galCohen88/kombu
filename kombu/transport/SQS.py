@@ -365,7 +365,7 @@ class Channel(virtual.Channel):
             except KeyError:
                 # json message not sent by kombu?
                 delivery_info = {}
-                properties = {'delivery_info': delivery_info}
+                properties = {'delivery_info': delivery_info, 'retries': message['ApproximateReceiveCount']}
                 payload.update({
                     'body': bytes_to_str(body),
                     'properties': properties,
@@ -515,7 +515,7 @@ class Channel(virtual.Channel):
         else:
             queue_url = connection.get_queue_url(queue)
         m = connection.receive_message(
-            queue, queue_url, number_messages=count,
+            queue, queue_url, attributes=('ApproximateReceiveCount',), number_messages=count,
             wait_time_seconds=self.wait_time_seconds,
             callback=callback,
         )
