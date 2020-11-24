@@ -345,8 +345,6 @@ class Channel(virtual.Channel):
             c.send_message(**kwargs)
 
     def _message_to_python(self, message, queue_name, queue):
-        print("_message_to_python")
-        print(message)
         try:
             body = base64.b64decode(message['Body'].encode())
         except TypeError:
@@ -372,7 +370,7 @@ class Channel(virtual.Channel):
                 })
             # set delivery tag to SQS receipt handle
             delivery_info.update({
-                'sqs_message': message, 'sqs_queue': queue, 'retries': message['Attributes']['ApproximateReceiveCount']
+                'sqs_message': message, 'sqs_queue': queue
             })
             properties['delivery_tag'] = message['ReceiptHandle']
         return payload
@@ -513,7 +511,7 @@ class Channel(virtual.Channel):
         else:
             queue_url = connection.get_queue_url(queue)
         m = connection.receive_message(
-            queue, queue_url, attributes=('ApproximateReceiveCount',), number_messages=count,
+            queue, queue_url, number_messages=count,
             wait_time_seconds=self.wait_time_seconds,
             callback=callback,
         )
